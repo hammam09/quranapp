@@ -38,3 +38,6 @@ Aplikasi ini berupa halaman web statis murni sehingga sangat mudah untuk dijalan
 ├── main.js      # Logika aplikasi (fetch API, manajemen state lokasi, bookmark, dsb).
 └── README.md    # Dokumentasi proyek.
 ```
+
+## Demo Website
+- URL : https://quranqu.netlify.app
