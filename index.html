@@ -3,25 +3,148 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pencarian Surat Al-Qur'an</title>
+  <title>Al-Qur'an & Jadwal Sholat</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="container">
-    <h1>Pencarian Surat Al-Qur'an</h1>
-
-    <div class="search-box">
-      <input
-        type="text"
-        id="inputSurat"
-        placeholder="Masukkan nomor atau nama surat..."
-      >
-      <button onclick="cariSurat()">Cari</button>
+  <!-- Overlay for Reading Mode (Hidden by default) -->
+  <div class="reading-overlay" id="readingOverlay">
+    <div class="reading-header">
+      <button class="btn-icon" id="btnCloseReading">
+        <i class="ph ph-arrow-left"></i>
+      </button>
+      <div class="reading-title-box">
+        <h2 id="readingSurahName">Nama Surah</h2>
+        <p id="readingSurahInfo">Detail Surah</p>
+      </div>
+      <button class="btn-icon" id="btnReadingSettings">
+        <i class="ph ph-text-aa"></i>
+      </button>
     </div>
-
-    <div id="hasil"></div>
+    
+    <div class="reading-content" id="readingContent">
+      <!-- Verses will be populated here -->
+    </div>
   </div>
+
+  <!-- Location Modal (Hidden by default) -->
+  <div id="locationModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center; padding: 24px; backdrop-filter: blur(4px);">
+    <div class="glass-panel" style="background: var(--surface-color); padding: 24px; width: 100%; max-width: 400px; position: relative;">
+      <button class="btn-icon" id="btnCloseLocationModal" style="position: absolute; top: 12px; right: 12px;">
+        <i class="ph ph-x"></i>
+      </button>
+      <h3 style="margin-bottom: 24px;">Atur Lokasi</h3>
+      <button class="btn-primary" id="btnUseGPS" style="width: 100%; justify-content: center; margin-bottom: 16px;">
+        <i class="ph ph-crosshair"></i> Gunakan Lokasi Saat Ini
+      </button>
+      <div style="text-align: center; margin-bottom: 16px; color: var(--text-secondary); font-size: 0.9rem;">ATAU</div>
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="inputCitySearch" placeholder="Cari nama kota (misal: Jakarta)..." style="flex: 1; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: transparent; color: var(--text-primary);">
+        <button class="btn-primary" id="btnSearchCity" style="padding: 12px;">
+          <i class="ph ph-magnifying-glass"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <header class="app-header">
+    <div class="logo">
+      <i class="ph ph-book-open-text"></i>
+      <span>Qur'anQu</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" id="themeToggle" aria-label="Toggle Theme">
+        <i class="ph ph-moon"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="app-container">
+    
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <!-- Prayer Times Card -->
+      <div class="prayer-card glass-panel">
+        <div class="prayer-header">
+          <div class="location-info" id="btnOpenLocationModal" style="cursor: pointer; padding: 4px 8px; background: rgba(255,255,255,0.2); border-radius: 20px; transition: background 0.2s;">
+            <i class="ph ph-map-pin"></i>
+            <span id="locationText">Mencari lokasi...</span>
+            <i class="ph ph-caret-down" style="font-size: 0.8rem; margin-left: 4px;"></i>
+          </div>
+          <div class="date-info" id="dateText">Memuat tanggal...</div>
+        </div>
+        
+        <div class="next-prayer-countdown">
+          <p>Menuju <span id="nextPrayerName">-</span></p>
+          <h2 id="countdownTimer">--:--:--</h2>
+        </div>
+
+        <div class="prayer-times" id="prayerTimesContainer">
+          <!-- Populated by JS -->
+          <div class="prayer-item"><span class="prayer-name">Subuh</span><span class="prayer-time">--:--</span></div>
+          <div class="prayer-item"><span class="prayer-name">Dzuhur</span><span class="prayer-time">--:--</span></div>
+          <div class="prayer-item"><span class="prayer-name">Ashar</span><span class="prayer-time">--:--</span></div>
+          <div class="prayer-item"><span class="prayer-name">Maghrib</span><span class="prayer-time">--:--</span></div>
+          <div class="prayer-item"><span class="prayer-name">Isya</span><span class="prayer-time">--:--</span></div>
+        </div>
+      </div>
+
+      <!-- Last Read Card -->
+      <div class="last-read-card glass-panel" id="lastReadCard">
+        <div class="last-read-info">
+          <div class="badge"><i class="ph ph-bookmark-simple"></i> Terakhir Dibaca</div>
+          <h3 id="lastReadSurah">Belum ada riwayat</h3>
+          <p id="lastReadAyat">Mulai baca Al-Qur'an sekarang.</p>
+        </div>
+        <button class="btn-primary" id="btnResumeRead" style="display: none;">
+          Lanjutkan <i class="ph ph-arrow-right"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="content-section">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="surah">Surah</button>
+        <button class="tab-btn" data-tab="juz">Juz</button>
+      </div>
+
+      <div class="search-container glass-panel">
+        <i class="ph ph-magnifying-glass"></i>
+        <input type="text" id="inputSurat" placeholder="Cari nama atau nomor surah...">
+      </div>
+
+      <div class="tab-content active" id="surahContent">
+        <div class="surah-grid" id="surahList">
+          <div class="loading-state">
+            <i class="ph ph-spinner ph-spin"></i>
+            <p>Memuat daftar surah...</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="juzContent" style="display: none;">
+        <div class="surah-grid" id="juzList">
+          <!-- Populated by JS -->
+          <div class="loading-state">
+            <i class="ph ph-spinner ph-spin"></i>
+            <p>Memuat daftar juz...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
 
   <script src="main.js"></script>
 </body>
